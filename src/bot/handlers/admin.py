@@ -527,9 +527,10 @@ async def callback_scan_servers(
     import asyncio
     import logging
 
-    from src.utils.server_scanner import ServerScanner, format_discovered_server
-
     logger = logging.getLogger(__name__)
+    logger.info("=== callback_scan_servers CALLED ===")
+
+    from src.utils.server_scanner import ServerScanner, format_discovered_server
 
     # Answer callback immediately to prevent timeout
     await callback.answer()
