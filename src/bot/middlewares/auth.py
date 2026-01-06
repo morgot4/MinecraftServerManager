@@ -58,8 +58,11 @@ class AuthMiddleware(BaseMiddleware):
                 lang = event.from_user.language_code or lang
             if event.message and event.message.chat:
                 chat_type = event.message.chat.type
+        else:
+            logger.warning(f"AuthMiddleware: Unknown event type: {type(event)}")
 
         if user_id is None:
+            logger.warning(f"AuthMiddleware: user_id is None for event type {type(event)}")
             return await handler(event, data)
 
         # Get or create user
