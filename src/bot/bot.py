@@ -94,9 +94,10 @@ async def create_bot(config: Config) -> tuple[Bot, Dispatcher, BotContext]:
         server_manager=server_manager,
     )
 
-    # Register middleware
-    dp.message.middleware(AuthMiddleware(config, database))
-    dp.callback_query.middleware(AuthMiddleware(config, database))
+    # Register middleware - use outer_middleware to ensure it runs for all routers
+    auth_middleware = AuthMiddleware(config, database)
+    dp.message.outer_middleware(auth_middleware)
+    dp.callback_query.outer_middleware(auth_middleware)
 
     # Register handlers
     dp.include_router(start.router)
