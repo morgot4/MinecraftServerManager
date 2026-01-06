@@ -2,6 +2,7 @@
 name = "minecraft-server-manager"
 version = "0.1.0"
 description = "Telegram bot for managing Minecraft servers"
+authors = ["Your Name <your@email.com>"]
 readme = "README.md"
 license = "MIT"
 packages = [{include = "src"}]
