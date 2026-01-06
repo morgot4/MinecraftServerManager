@@ -1,0 +1,229 @@
+# English translations
+
+# General
+bot:
+  name: "🎮 Minecraft Server Manager"
+  welcome: |
+    Welcome to Minecraft Server Manager!
+    
+    Use /help to see available commands.
+  help_player: |
+    📋 *Available commands:*
+    
+    /status — Server status
+    /list — Online players
+    /lang — Change language
+  help_operator: |
+    🔧 *Operator commands:*
+    
+    /on — Start server
+    /off — Stop server
+    /restart — Restart server
+  help_admin: |
+    ⚙️ *Admin commands:*
+    
+    /say `<message>` — Send chat message
+    /kick `<nickname>` — Kick player
+    /whitelist — Manage whitelist
+    /backup — Create backup
+    /console `<command>` — Console command
+    /settings — Server settings
+    /set `<key>` `<value>` — Change setting
+    /mods — List mods (for Forge)
+    /addmod `<name>` — Install mod
+    /removemod `<name>` — Remove mod
+    /backups — List backups
+    /restore `<id>` — Restore backup
+  help_owner: |
+    👑 *Owner commands:*
+    
+    /servers — List servers
+    /switch `<name>` — Switch server
+    /create — Create new server
+    /delete `<name>` — Delete server
+    /version — Change version
+    /role — Manage user roles
+    /users — List users
+
+# Server messages
+server:
+  starting: "🚀 Starting server **{name}**..."
+  started: "✅ Server **{name}** started!"
+  start_timeout: "⚠️ Server **{name}** did not start in time"
+  stopping: "🛑 Stopping server **{name}**..."
+  stopped: "⏹️ Server **{name}** stopped"
+  restarting: "🔄 Restarting server **{name}**..."
+  already_running: "⚠️ Server is already running"
+  not_running: "⚠️ Server is not running"
+  crashed: "❌ Server **{name}** crashed!"
+  
+  status:
+    title: "📊 Server Status"
+    name: "Server"
+    version: "Version"
+    engine: "Engine"
+    state: "State"
+    running: "🟢 Running"
+    stopped: "🔴 Stopped"
+    players: "Players"
+    uptime: "Uptime"
+    memory: "Memory"
+    address: "Address"
+  
+  no_active: "⚠️ No active server. Use /servers to select one."
+  created: "✅ Server **{name}** created!"
+  deleted: "🗑️ Server **{name}** deleted"
+  switched: "✅ Switched to server **{name}**"
+  
+  list:
+    title: "📋 Servers"
+    empty: "No servers created"
+    active: "✅ active"
+
+  import:
+    title: "📥 Discovered Servers"
+    scanning: "🔍 Scanning servers folder..."
+    none_found: "No new servers found"
+    select: "Select server to import:"
+    success: "✅ Server **{name}** imported successfully!"
+    rcon_configured: "⚠️ RCON was configured automatically"
+    confirm: "Import server **{name}**?\n\nVersion: {version}\nEngine: {engine}\nPort: {port}"
+
+# Players
+players:
+  list_title: "👥 Online Players ({count}/{max})"
+  list_empty: "No players online"
+  joined: "➡️ **{player}** joined the server"
+  left: "⬅️ **{player}** left the server"
+  kicked: "👢 Player **{player}** was kicked"
+  not_online: "⚠️ Player **{player}** is not online"
+
+# Whitelist
+whitelist:
+  added: "✅ **{player}** added to whitelist"
+  removed: "❌ **{player}** removed from whitelist"
+  list_title: "📋 Whitelist"
+  list_empty: "Whitelist is empty"
+  already_added: "⚠️ **{player}** is already whitelisted"
+
+# Operators
+ops:
+  added: "👑 **{player}** is now an operator"
+  removed: "👤 **{player}** is no longer an operator"
+  list_title: "👑 Operators"
+  list_empty: "No operators"
+
+# Backups
+backup:
+  creating: "📦 Creating backup..."
+  created: "✅ Backup created: `{filename}` ({size})"
+  failed: "❌ Backup failed: {error}"
+  restoring: "📦 Restoring from backup..."
+  restored: "✅ Backup restored!"
+  list_title: "📦 Backups for **{name}**"
+  list_empty: "No backups"
+  deleted: "🗑️ Old backup deleted: {filename}"
+  not_found: "⚠️ Backup not found"
+
+# Mods
+mods:
+  list_title: "🧩 Mods on **{name}**"
+  list_empty: "No mods installed"
+  searching: "🔍 Searching for **{query}**..."
+  not_found: "⚠️ Mod not found: {query}"
+  installing: "📥 Installing **{name}**..."
+  installed: "✅ Mod **{name}** installed!"
+  removing: "🗑️ Removing **{name}**..."
+  removed: "✅ Mod **{name}** removed"
+  requires_restart: "⚠️ Server restart required"
+  not_forge: "⚠️ Mods are only available for Forge servers"
+
+# Settings
+settings:
+  title: "⚙️ Settings for **{name}**"
+  updated: "✅ Setting **{setting}** changed to `{value}`"
+  invalid_key: "⚠️ Unknown setting: {setting}"
+  requires_restart: "⚠️ Restart required to apply changes"
+
+# Version
+version:
+  current: "Current version: **{version}**"
+  changing: "🔄 Changing version to **{version}**..."
+  changed: "✅ Version changed to **{version}**"
+  downloading: "📥 Downloading **{version}**..."
+  invalid: "⚠️ Invalid version: {version}"
+
+# Roles
+roles:
+  updated: "✅ Role of **{user}** changed to **{role}**"
+  owner: "👑 Owner"
+  admin: "⚙️ Administrator"
+  operator: "🔧 Operator"
+  player: "👤 Player"
+  no_permission: "🚫 Permission denied"
+  no_permission_detailed: "🚫 You don't have permission for this action. Required role: **{required}**"
+  cannot_change_owner: "🚫 Cannot change owner role"
+  cannot_promote_to_owner: "🚫 Owner role can only be assigned via config"
+  
+  list_title: "👥 Users and Roles"
+  list_empty: "No registered users"
+  select_user: "Select user to change role:"
+  select_role: "Select role for **{user}**:"
+  your_role: "Your role: **{role}**"
+
+# Errors
+error:
+  unknown: "❌ An error occurred: {message}"
+  java_not_found: "❌ Java not found. Install Java {version}+"
+  port_in_use: "❌ Port {port} is already in use"
+  server_exists: "❌ Server **{name}** already exists"
+  invalid_name: "❌ Invalid server name"
+  download_failed: "❌ Download failed: {error}"
+
+# Notifications
+notify:
+  server_started: "🚀 Server **{name}** started"
+  server_stopped: "⏹️ Server **{name}** stopped"
+  server_crashed: "❌ Server **{name}** crashed!"
+  player_joined: "➡️ **{player}** joined **{server}**"
+  player_left: "⬅️ **{player}** left **{server}**"
+  auto_shutdown: "💤 Server **{name}** auto-stopped (no players)"
+  backup_auto: "📦 Auto-backup created: {filename}"
+
+# Time formatting
+time:
+  days: "{n}d"
+  hours: "{n}h"
+  minutes: "{n}m"
+  seconds: "{n}s"
+
+# Buttons
+button:
+  start: "▶️ Start"
+  stop: "⏹️ Stop"
+  restart: "🔄 Restart"
+  backup: "📦 Backup"
+  status: "📊 Status"
+  players: "👥 Players"
+  settings: "⚙️ Settings"
+  servers: "📋 Servers"
+  back: "◀️ Back"
+  confirm: "✅ Confirm"
+  cancel: "❌ Cancel"
+  yes: "Yes"
+  no: "No"
+  create_server: "Create server"
+  import_server: "Import server"
+  scan_servers: "Scan for servers"
+  add_player: "Add player"
+  search_mods: "Search mods"
+  create_backup: "Create backup"
+
+# Language
+lang:
+  changed: "✅ Language changed to English"
+  select: "🌐 Select language:"
+
+# Group chat
+group:
+  mention_hint: "💡 In group chat, use commands: /status, /on, /off"

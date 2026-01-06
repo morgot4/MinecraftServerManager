@@ -1,0 +1,55 @@
+# Minecraft Server Manager Configuration
+# Copy this file to config.yaml and edit values
+
+# Telegram Bot Settings
+telegram:
+  # Bot token from @BotFather (or use BOT_TOKEN env variable)
+  bot_token: "${BOT_TOKEN}"
+  
+  # Telegram user IDs with admin access
+  # Get your ID from @userinfobot
+  admin_ids:
+    - 123456789
+
+# Default settings for new servers
+defaults:
+  ram_min: "4G"
+  ram_max: "10G"
+  port: 25565
+  # Path to Java executable (use "java" if in PATH)
+  java_path: "java"
+
+# Auto-shutdown when no players online
+auto_shutdown:
+  enabled: true
+  # Minutes to wait before shutdown (0 = disabled)
+  empty_minutes: 30
+
+# Backup settings
+backups:
+  # Enable automatic backups
+  auto_enabled: true
+  # Backup interval in hours
+  interval_hours: 3
+  # Number of automatic backups to keep (rotating)
+  keep_count: 2
+  # Create backup before stopping server
+  backup_on_stop: true
+
+# Notifications sent to admins
+notifications:
+  server_start: true
+  server_stop: true
+  player_join: true
+  player_leave: true
+  crash: true
+
+# File paths (relative to project root)
+paths:
+  servers_dir: "./servers"
+  backups_dir: "./backups"
+  database: "./data/manager.db"
+
+# Default language: "ru" or "en"
+language: "ru"
+
