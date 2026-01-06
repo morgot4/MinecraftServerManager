@@ -43,25 +43,21 @@ async def cmd_servers(
     ctx: "BotContext",  # type: ignore
 ) -> None:
     """Handle /servers command to list all servers (OWNER only)."""
-    from src.utils.server_scanner import ServerScanner
-
     servers = await ctx.database.get_all_servers()
 
-    # Count discovered servers
-    known_names = [s.name for s in servers]
-    scanner = ServerScanner(ctx.config.paths.servers_dir)
-    discovered = scanner.scan_for_servers(known_names)
+    # Don't scan here - it slows down the response
+    # User can click "Scan" button to discover new servers
 
     if not servers:
         await message.answer(
             t("server.list.empty", user_lang),
-            reply_markup=servers_list_keyboard([], user_lang, can_create=True, discovered_count=len(discovered)),
+            reply_markup=servers_list_keyboard([], user_lang, can_create=True, discovered_count=0),
         )
         return
 
     await message.answer(
         t("server.list.title", user_lang),
-        reply_markup=servers_list_keyboard(servers, user_lang, can_create=True, discovered_count=len(discovered)),
+        reply_markup=servers_list_keyboard(servers, user_lang, can_create=True, discovered_count=0),
     )
 
 
@@ -74,26 +70,22 @@ async def callback_servers_list(
     ctx: "BotContext",  # type: ignore
 ) -> None:
     """Handle servers list button (OWNER only)."""
-    from src.utils.server_scanner import ServerScanner
+    await callback.answer()
 
     servers = await ctx.database.get_all_servers()
 
-    # Count discovered servers
-    known_names = [s.name for s in servers]
-    scanner = ServerScanner(ctx.config.paths.servers_dir)
-    discovered = scanner.scan_for_servers(known_names)
+    # Don't scan here - user can click "Scan" button
 
     if not servers:
         await callback.message.edit_text(  # type: ignore
             t("server.list.empty", user_lang),
-            reply_markup=servers_list_keyboard([], user_lang, can_create=True, discovered_count=len(discovered)),
+            reply_markup=servers_list_keyboard([], user_lang, can_create=True, discovered_count=0),
         )
     else:
         await callback.message.edit_text(  # type: ignore
             t("server.list.title", user_lang),
-            reply_markup=servers_list_keyboard(servers, user_lang, can_create=True, discovered_count=len(discovered)),
+            reply_markup=servers_list_keyboard(servers, user_lang, can_create=True, discovered_count=0),
         )
-    await callback.answer()
 
 
 @router.callback_query(lambda c: c.data and c.data.startswith("servers:select:"))
@@ -532,51 +524,69 @@ async def callback_scan_servers(
     ctx: "BotContext",  # type: ignore
 ) -> None:
     """Handle scan servers button (OWNER only)."""
+    import asyncio
+    import logging
+
     from src.utils.server_scanner import ServerScanner, format_discovered_server
 
-    await callback.message.edit_text(t("server.import.scanning", user_lang))  # type: ignore
+    logger = logging.getLogger(__name__)
+
+    # Answer callback immediately to prevent timeout
     await callback.answer()
 
-    # Get known server names
-    servers = await ctx.database.get_all_servers()
-    known_names = [s.name for s in servers]
+    try:
+        await callback.message.edit_text(t("server.import.scanning", user_lang))  # type: ignore
 
-    # Scan for new servers
-    scanner = ServerScanner(ctx.config.paths.servers_dir)
-    discovered = scanner.scan_for_servers(known_names)
+        # Get known server names
+        servers = await ctx.database.get_all_servers()
+        known_names = [s.name for s in servers]
 
-    if not discovered:
+        # Scan for new servers in executor to not block event loop
+        scanner = ServerScanner(ctx.config.paths.servers_dir)
+        loop = asyncio.get_event_loop()
+        discovered = await loop.run_in_executor(None, scanner.scan_for_servers, known_names)
+
+        logger.info(f"Scan completed: found {len(discovered)} servers")
+
+        if not discovered:
+            await callback.message.edit_text(  # type: ignore
+                t("server.import.none_found", user_lang),
+                reply_markup=back_keyboard(user_lang, "servers:list"),
+            )
+            return
+
+        # Show discovered servers
+        text = t("server.import.title", user_lang) + "\n\n"
+        for srv in discovered:
+            text += format_discovered_server(srv, user_lang) + "\n\n"
+
+        text += t("server.import.select", user_lang)
+
+        # Build keyboard
+        from aiogram.types import InlineKeyboardButton
+        from aiogram.utils.keyboard import InlineKeyboardBuilder
+
+        builder = InlineKeyboardBuilder()
+        for srv in discovered:
+            engine_icon = "🔧" if srv.engine.value == "forge" else "📦"
+            builder.row(
+                InlineKeyboardButton(
+                    text=f"{engine_icon} {srv.name} ({srv.mc_version})",
+                    callback_data=f"import:server:{srv.name}",
+                )
+            )
+        builder.row(
+            InlineKeyboardButton(text=t("button.back", user_lang), callback_data="servers:list"),
+        )
+
+        await callback.message.edit_text(text, reply_markup=builder.as_markup())  # type: ignore
+
+    except Exception as e:
+        logger.exception("Error scanning servers")
         await callback.message.edit_text(  # type: ignore
-            t("server.import.none_found", user_lang),
+            t("error.unknown", user_lang, message=str(e)),
             reply_markup=back_keyboard(user_lang, "servers:list"),
         )
-        return
-
-    # Show discovered servers
-    text = t("server.import.title", user_lang) + "\n\n"
-    for srv in discovered:
-        text += format_discovered_server(srv, user_lang) + "\n\n"
-
-    text += t("server.import.select", user_lang)
-
-    # Build keyboard
-    from aiogram.types import InlineKeyboardButton
-    from aiogram.utils.keyboard import InlineKeyboardBuilder
-
-    builder = InlineKeyboardBuilder()
-    for srv in discovered:
-        engine_icon = "🔧" if srv.engine.value == "forge" else "📦"
-        builder.row(
-            InlineKeyboardButton(
-                text=f"{engine_icon} {srv.name} ({srv.mc_version})",
-                callback_data=f"import:server:{srv.name}",
-            )
-        )
-    builder.row(
-        InlineKeyboardButton(text=t("button.back", user_lang), callback_data="servers:list"),
-    )
-
-    await callback.message.edit_text(text, reply_markup=builder.as_markup())  # type: ignore
 
 
 @router.callback_query(lambda c: c.data and c.data.startswith("import:server:"))
