@@ -1,0 +1,21 @@
+[Unit]
+Description=Minecraft Server Manager Bot
+After=network.target
+
+[Service]
+Type=simple
+User=YOUR_USERNAME
+WorkingDirectory=/path/to/MinecraftServerManager
+Environment=PATH=/usr/local/bin:/usr/bin:/bin
+EnvironmentFile=/path/to/MinecraftServerManager/.env
+ExecStart=/usr/bin/poetry run python -m src.main
+Restart=always
+RestartSec=10
+
+# Logging
+StandardOutput=append:/var/log/mcbot/output.log
+StandardError=append:/var/log/mcbot/error.log
+
+[Install]
+WantedBy=multi-user.target
+

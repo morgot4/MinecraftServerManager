@@ -38,7 +38,6 @@ class AuthMiddleware(BaseMiddleware):
         event: TelegramObject,
         data: dict[str, Any],
     ) -> Any:
-        logger.info(f"AuthMiddleware called: event_type={type(event).__name__}")
 
         # Extract user from event
         user_id: int | None = None
@@ -96,8 +95,6 @@ class AuthMiddleware(BaseMiddleware):
         # Legacy compatibility (will be removed later)
         data["is_admin"] = user.is_admin()
         data["is_moderator"] = user.is_operator()
-
-        logger.info(f"AuthMiddleware: injected user={user.telegram_id}, passing to handler")
 
         return await handler(event, data)
 

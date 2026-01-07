@@ -22,15 +22,22 @@ from src.utils.config import load_config
 from src.utils.java import check_java
 
 
-def setup_logging() -> None:
+def setup_logging(log_file: Path | None = None) -> None:
     """Configure logging for the application."""
+    handlers: list[logging.Handler] = [logging.StreamHandler()]
+
+    if log_file:
+        log_file.parent.mkdir(parents=True, exist_ok=True)
+        file_handler = logging.FileHandler(log_file, encoding="utf-8")
+        handlers.append(file_handler)
+
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s | %(levelname)-8s | %(name)s | %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
+        handlers=handlers,
     )
 
-    # Reduce noise from libraries
     logging.getLogger("aiogram").setLevel(logging.WARNING)
     logging.getLogger("httpx").setLevel(logging.WARNING)
     logging.getLogger("aiosqlite").setLevel(logging.WARNING)
@@ -105,7 +112,14 @@ async def async_main() -> None:
 
 def main() -> None:
     """Main entry point."""
-    setup_logging()
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Minecraft Server Manager Bot")
+    parser.add_argument("--log-file", type=Path, help="Path to log file")
+    args = parser.parse_args()
+
+    log_file = args.log_file or Path(__file__).parent.parent / "logs" / "bot.log"
+    setup_logging(log_file)
 
     try:
         asyncio.run(async_main())

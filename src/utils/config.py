@@ -71,11 +71,17 @@ class PathsConfig(BaseModel):
         return self
 
 
+def _get_env_file() -> Path | None:
+    """Get .env file path relative to project root."""
+    env_path = Path(__file__).parent.parent.parent / ".env"
+    return env_path if env_path.exists() else None
+
+
 class Config(BaseSettings):
     """Main application configuration."""
 
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=_get_env_file(),
         env_file_encoding="utf-8",
         extra="ignore",
     )

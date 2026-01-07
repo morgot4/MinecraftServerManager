@@ -1,5 +1,6 @@
 """Admin command handlers for server management."""
 
+import re
 from typing import TYPE_CHECKING
 
 from aiogram import Router
@@ -16,6 +17,11 @@ from src.engines.vanilla import VanillaEngine
 from src.i18n import t
 from src.minecraft.server_properties import ServerProperties
 from src.storage.models import EngineType, User, UserRole
+
+
+def escape_md(text: str) -> str:
+    """Escape Markdown special characters."""
+    return re.sub(r"([_*\[\]()~`>#+\-=|{}.!])", r"\\\1", str(text))
 
 if TYPE_CHECKING:
     from src.bot.bot import BotContext
@@ -269,7 +275,9 @@ async def process_server_version(
             return
         version = latest.version
 
-    await message.answer(f"📦 Creating server **{name}** ({engine_str} {version})...")
+    await message.answer(
+        f"📦 Creating server **{escape_md(name)}** ({escape_md(engine_str)} {escape_md(version)})..."
+    )
 
     try:
         # Create server config
