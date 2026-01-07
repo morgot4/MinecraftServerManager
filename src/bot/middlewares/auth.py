@@ -38,6 +38,8 @@ class AuthMiddleware(BaseMiddleware):
         event: TelegramObject,
         data: dict[str, Any],
     ) -> Any:
+        logger.info(f"AuthMiddleware called: event_type={type(event).__name__}")
+
         # Extract user from event
         user_id: int | None = None
         username: str | None = None
