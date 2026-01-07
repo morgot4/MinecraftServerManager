@@ -124,11 +124,8 @@ def require_role(min_role: UserRole):
         async def wrapper(*args, **kwargs) -> Any:
             user: User | None = kwargs.get("user")
 
-            logger.info(f"require_role: {func.__name__}, user={user.telegram_id if user else None}, role={user.role if user else None}")
-
             if not user:
-                logger.warning(f"require_role: No user in kwargs for {func.__name__}")
-                return  # Middleware didn't run, skip
+                return
 
             # Check role hierarchy using level comparison
             if user.role.level < min_role.level:

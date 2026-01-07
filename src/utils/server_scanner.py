@@ -1,5 +1,3 @@
-"""Scanner for discovering existing Minecraft servers."""
-
 import json
 import logging
 import secrets
@@ -16,8 +14,6 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class DiscoveredServer:
-    """Information about a discovered server."""
-
     name: str
     path: Path
     engine: EngineType
@@ -30,26 +26,10 @@ class DiscoveredServer:
 
 
 class ServerScanner:
-    """
-    Scanner for discovering existing Minecraft servers.
-
-    Scans the servers directory for folders containing server.jar
-    that are not yet registered in the database.
-    """
-
     def __init__(self, servers_dir: Path):
         self.servers_dir = servers_dir
 
     def scan_for_servers(self, known_names: list[str]) -> list[DiscoveredServer]:
-        """
-        Scan for servers not in the known list.
-
-        Args:
-            known_names: List of server names already in database
-
-        Returns:
-            List of discovered servers
-        """
         discovered = []
 
         if not self.servers_dir.exists():
@@ -62,10 +42,8 @@ class ServerScanner:
             if folder.name in known_names:
                 continue
 
-            # Check for server.jar
             server_jar = folder / "server.jar"
             if not server_jar.exists():
-                # Also check for forge-style jars
                 forge_jars = list(folder.glob("forge-*.jar")) + list(folder.glob("*-forge-*.jar"))
                 if not forge_jars:
                     continue
@@ -78,24 +56,10 @@ class ServerScanner:
         return discovered
 
     def _analyze_server(self, path: Path) -> DiscoveredServer | None:
-        """
-        Analyze a server folder to extract configuration.
-
-        Args:
-            path: Path to server folder
-
-        Returns:
-            DiscoveredServer or None if analysis failed
-        """
         name = path.name
-
-        # Determine engine type
         engine = self._detect_engine(path)
-
-        # Get Minecraft version
         mc_version = self._detect_version(path)
 
-        # Load server.properties
         props_path = path / "server.properties"
         port = 25565
         rcon_port = 25575
@@ -110,12 +74,10 @@ class ServerScanner:
             rcon_port = props.get("rcon.port", 25575)
             rcon_password = props.get_raw("rcon.password") or ""
 
-            # Check if RCON is properly configured
             rcon_enabled = props.get("enable-rcon", False)
             if rcon_enabled and rcon_password:
                 needs_rcon_setup = False
 
-        # Check if world exists
         has_world = (path / "world").exists()
 
         return DiscoveredServer(
@@ -131,8 +93,6 @@ class ServerScanner:
         )
 
     def _detect_engine(self, path: Path) -> EngineType:
-        """Detect which engine the server uses."""
-        # Check for Forge indicators
         forge_indicators = [
             path / "mods",
             path / "config",
@@ -141,7 +101,6 @@ class ServerScanner:
 
         for indicator in forge_indicators:
             if indicator.exists():
-                # Also check for forge jar
                 forge_jars = list(path.glob("forge-*.jar")) + list(path.glob("*-forge-*.jar"))
                 if forge_jars or (path / "mods").exists():
                     return EngineType.FORGE
@@ -149,8 +108,6 @@ class ServerScanner:
         return EngineType.VANILLA
 
     def _detect_version(self, path: Path) -> str:
-        """Detect Minecraft version from server files."""
-        # Try version.json (vanilla)
         version_json = path / "version.json"
         if version_json.exists():
             try:
@@ -161,9 +118,17 @@ class ServerScanner:
             except (json.JSONDecodeError, KeyError):
                 pass
 
-        # Try to parse from forge jar name
+        versions_dir = path / "versions"
+        if versions_dir.exists() and versions_dir.is_dir():
+            version_folders = [
+                f.name for f in versions_dir.iterdir()
+                if f.is_dir() and self._is_valid_version(f.name)
+            ]
+            if version_folders:
+                version_folders.sort(key=self._version_sort_key, reverse=True)
+                return version_folders[0]
+
         for jar in path.glob("forge-*.jar"):
-            # Format: forge-<mc_version>-<forge_version>.jar
             try:
                 name = jar.stem
                 parts = name.split("-")
@@ -172,9 +137,40 @@ class ServerScanner:
             except (IndexError, ValueError):
                 pass
 
-        # Try server.jar manifest (less reliable)
-        # For now, return unknown
+        for jar in path.glob("minecraft_server.*.jar"):
+            try:
+                name = jar.stem
+                version = name.replace("minecraft_server.", "")
+                if self._is_valid_version(version):
+                    return version
+            except (IndexError, ValueError):
+                pass
+
         return "unknown"
+
+    def _is_valid_version(self, version: str) -> bool:
+        parts = version.split(".")
+        if len(parts) < 2:
+            return False
+        try:
+            if int(parts[0]) != 1:
+                return False
+            int(parts[1])
+            return True
+        except ValueError:
+            return False
+
+    def _version_sort_key(self, version: str) -> tuple:
+        parts = version.split(".")
+        result = []
+        for part in parts:
+            try:
+                result.append(int(part))
+            except ValueError:
+                result.append(0)
+        while len(result) < 3:
+            result.append(0)
+        return tuple(result)
 
     def import_server(
         self,
@@ -182,23 +178,10 @@ class ServerScanner:
         ram_min: str = "2G",
         ram_max: str = "8G",
     ) -> Server:
-        """
-        Import a discovered server into the database format.
-
-        Args:
-            discovered: Discovered server info
-            ram_min: Minimum RAM allocation
-            ram_max: Maximum RAM allocation
-
-        Returns:
-            Server model ready to save to database
-        """
-        # Generate RCON password if needed
         rcon_password = discovered.rcon_password
         if discovered.needs_rcon_setup:
             rcon_password = secrets.token_urlsafe(16)
 
-            # Update server.properties with RCON settings
             props_path = discovered.path / "server.properties"
             props = ServerProperties(props_path)
             if props_path.exists():
@@ -229,7 +212,6 @@ class ServerScanner:
 
 
 def format_discovered_server(server: DiscoveredServer, lang: str = "ru") -> str:
-    """Format discovered server info for display."""
     engine_icon = "🔧" if server.engine == EngineType.FORGE else "📦"
     world_icon = "🌍" if server.has_world else "🆕"
     rcon_icon = "✅" if not server.needs_rcon_setup else "⚠️"
@@ -242,4 +224,3 @@ def format_discovered_server(server: DiscoveredServer, lang: str = "ru") -> str:
         f"   {world_icon} Мир: {'есть' if server.has_world else 'новый'}\n"
         f"   {rcon_icon} RCON: {'настроен' if not server.needs_rcon_setup else 'будет настроен'}"
     )
-
