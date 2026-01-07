@@ -22,6 +22,7 @@ router = Router(name="backup")
 @require_role(UserRole.ADMIN)
 async def cmd_backup(
     message: Message,
+    user: User,
     user_lang: str,
     ctx: "BotContext",  # type: ignore
 ) -> None:
@@ -86,6 +87,7 @@ async def callback_backup_create(
 @require_role(UserRole.ADMIN)
 async def cmd_backups(
     message: Message,
+    user: User,
     user_lang: str,
     ctx: "BotContext",  # type: ignore
 ) -> None:
@@ -197,6 +199,7 @@ async def callback_backup_confirm_restore(
 @require_role(UserRole.ADMIN)
 async def cmd_restore(
     message: Message,
+    user: User,
     user_lang: str,
     ctx: "BotContext",  # type: ignore
 ) -> None:
@@ -208,7 +211,7 @@ async def cmd_restore(
 
     parts = message.text.split()
     if len(parts) < 2:
-        await message.answer("Usage: /restore <backup_id>\nUse /backups to see available backups.")
+        await message.answer("Usage: /restore backup_id\nUse /backups to see available backups.", parse_mode=None)
         return
 
     backup_id = parts[1]

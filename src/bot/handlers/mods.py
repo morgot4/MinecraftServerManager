@@ -30,6 +30,7 @@ class ModSearchStates(StatesGroup):
 @require_role(UserRole.ADMIN)
 async def cmd_mods(
     message: Message,
+    user: User,
     user_lang: str,
     ctx: "BotContext",  # type: ignore
 ) -> None:
@@ -62,6 +63,7 @@ async def cmd_mods(
 @require_role(UserRole.ADMIN)
 async def cmd_addmod(
     message: Message,
+    user: User,
     user_lang: str,
     ctx: "BotContext",  # type: ignore
 ) -> None:
@@ -77,7 +79,7 @@ async def cmd_addmod(
 
     parts = message.text.split(maxsplit=1)
     if len(parts) < 2:
-        await message.answer("Usage: /addmod <mod_name_or_slug>")
+        await message.answer("Usage: /addmod mod_name_or_slug", parse_mode=None)
         return
 
     query = parts[1]
@@ -122,6 +124,7 @@ async def cmd_addmod(
 @require_role(UserRole.ADMIN)
 async def cmd_removemod(
     message: Message,
+    user: User,
     user_lang: str,
     ctx: "BotContext",  # type: ignore
 ) -> None:
@@ -137,7 +140,7 @@ async def cmd_removemod(
 
     parts = message.text.split(maxsplit=1)
     if len(parts) < 2:
-        await message.answer("Usage: /removemod <mod_name>")
+        await message.answer("Usage: /removemod mod_name", parse_mode=None)
         return
 
     mod_name = parts[1]
@@ -175,6 +178,7 @@ async def callback_mods_search(
 @require_role(UserRole.ADMIN)
 async def process_mod_search(
     message: Message,
+    user: User,
     state: FSMContext,
     user_lang: str,
     ctx: "BotContext",  # type: ignore
@@ -206,7 +210,7 @@ async def process_mod_search(
             text += f"  {mod.description[:80]}...\n"
             text += f"  Downloads: {mod.downloads:,}\n\n"
 
-        text += "\nUse `/addmod <slug>` to install a mod."
+        text += "\nUse /addmod slug to install a mod."
         await message.answer(text)
 
     except Exception as e:

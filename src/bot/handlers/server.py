@@ -345,6 +345,7 @@ async def callback_restart_server(
 @require_role(UserRole.ADMIN)
 async def cmd_say(
     message: Message,
+    user: User,
     user_lang: str,
     ctx: "BotContext",  # type: ignore
 ) -> None:
@@ -356,7 +357,7 @@ async def cmd_say(
     # Extract message text
     text = message.text.split(maxsplit=1)[1] if len(message.text.split()) > 1 else None
     if not text:
-        await message.answer("Usage: /say <message>")
+        await message.answer("Usage: /say message", parse_mode=None)
         return
 
     success = await ctx.server_manager.say(text)
@@ -370,6 +371,7 @@ async def cmd_say(
 @require_role(UserRole.ADMIN)
 async def cmd_console(
     message: Message,
+    user: User,
     user_lang: str,
     ctx: "BotContext",  # type: ignore
 ) -> None:
@@ -381,7 +383,7 @@ async def cmd_console(
     # Extract command
     parts = message.text.split(maxsplit=1)
     if len(parts) < 2:
-        await message.answer("Usage: /console <command>")
+        await message.answer("Usage: /console command", parse_mode=None)
         return
 
     command = parts[1]

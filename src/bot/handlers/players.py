@@ -82,6 +82,7 @@ async def callback_players_list(
 @require_role(UserRole.ADMIN)
 async def cmd_kick(
     message: Message,
+    user: User,
     user_lang: str,
     ctx: "BotContext",  # type: ignore
 ) -> None:
@@ -93,7 +94,7 @@ async def cmd_kick(
     # Parse command
     parts = message.text.split(maxsplit=2)
     if len(parts) < 2:
-        await message.answer("Usage: /kick <player> [reason]")
+        await message.answer("Usage: /kick player [reason]", parse_mode=None)
         return
 
     player = parts[1]
@@ -116,6 +117,7 @@ async def cmd_kick(
 @require_role(UserRole.ADMIN)
 async def cmd_whitelist(
     message: Message,
+    user: User,
     user_lang: str,
     ctx: "BotContext",  # type: ignore
 ) -> None:
@@ -144,7 +146,7 @@ async def cmd_whitelist(
 
     action = parts[1].lower()
     if len(parts) < 3:
-        await message.answer("Usage: /whitelist add|remove <player>")
+        await message.answer("Usage: /whitelist add|remove player", parse_mode=None)
         return
 
     player = parts[2]
@@ -212,6 +214,7 @@ async def callback_whitelist_remove(
 @require_role(UserRole.ADMIN)
 async def cmd_op(
     message: Message,
+    user: User,
     user_lang: str,
     ctx: "BotContext",  # type: ignore
 ) -> None:
@@ -235,7 +238,7 @@ async def cmd_op(
 
     action = parts[1].lower()
     if len(parts) < 3 and action in ("add", "remove"):
-        await message.answer("Usage: /op add|remove <player>")
+        await message.answer("Usage: /op add|remove player", parse_mode=None)
         return
 
     player = parts[2] if len(parts) > 2 else parts[1]

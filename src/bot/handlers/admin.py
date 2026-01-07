@@ -137,6 +137,7 @@ async def callback_server_select(
 @require_role(UserRole.OWNER)
 async def cmd_switch(
     message: Message,
+    user: User,
     user_lang: str,
     ctx: "BotContext",  # type: ignore
 ) -> None:
@@ -147,7 +148,7 @@ async def cmd_switch(
 
     parts = message.text.split(maxsplit=1)
     if len(parts) < 2:
-        await message.answer("Usage: /switch <server_name>")
+        await message.answer("Usage: `/switch server_name`", parse_mode=None)
         return
 
     server_name = parts[1]
@@ -171,6 +172,7 @@ async def cmd_switch(
 @require_role(UserRole.OWNER)
 async def cmd_create(
     message: Message,
+    user: User,
     state: FSMContext,
     user_lang: str,
 ) -> None:
@@ -347,13 +349,14 @@ async def callback_servers_create(
 @require_role(UserRole.OWNER)
 async def cmd_delete(
     message: Message,
+    user: User,
     user_lang: str,
     ctx: "BotContext",  # type: ignore
 ) -> None:
     """Handle /delete command (OWNER only)."""
     parts = message.text.split(maxsplit=1)
     if len(parts) < 2:
-        await message.answer("Usage: /delete <server_name>")
+        await message.answer("Usage: `/delete server_name`", parse_mode=None)
         return
 
     server_name = parts[1]
@@ -434,6 +437,7 @@ async def callback_confirm_delete(
 @require_role(UserRole.OWNER)
 async def cmd_version(
     message: Message,
+    user: User,
     user_lang: str,
     ctx: "BotContext",  # type: ignore
 ) -> None:
@@ -447,7 +451,7 @@ async def cmd_version(
     if len(parts) < 2:
         await message.answer(
             f"{t('version.current', user_lang, version=server.mc_version)}\n\n"
-            "Usage: /version <new_version>"
+            "Usage: /version new_version"
         )
         return
 
@@ -486,6 +490,7 @@ async def cmd_version(
 @require_role(UserRole.OWNER)
 async def cmd_import(
     message: Message,
+    user: User,
     user_lang: str,
     ctx: "BotContext",  # type: ignore
 ) -> None:

@@ -22,6 +22,7 @@ router = Router(name="config")
 @require_role(UserRole.ADMIN)
 async def cmd_settings(
     message: Message,
+    user: User,
     user_lang: str,
     ctx: "BotContext",  # type: ignore
 ) -> None:
@@ -57,7 +58,7 @@ async def cmd_settings(
 • white-list: `{props.get("white-list", False)}`
 • online-mode: `{props.get("online-mode", True)}`
 
-Use `/set <key> <value>` to change a setting.
+Use /set key value to change a setting.
 """
 
     await message.answer(settings_text.strip(), reply_markup=back_keyboard(user_lang))
@@ -103,7 +104,7 @@ async def callback_settings(
 • white-list: `{props.get("white-list", False)}`
 • online-mode: `{props.get("online-mode", True)}`
 
-Use `/set <key> <value>` to change a setting.
+Use /set key value to change a setting.
 """
 
     await callback.message.edit_text(  # type: ignore
@@ -117,6 +118,7 @@ Use `/set <key> <value>` to change a setting.
 @require_role(UserRole.ADMIN)
 async def cmd_set(
     message: Message,
+    user: User,
     user_lang: str,
     ctx: "BotContext",  # type: ignore
 ) -> None:
@@ -128,7 +130,7 @@ async def cmd_set(
 
     parts = message.text.split(maxsplit=2)
     if len(parts) < 3:
-        await message.answer("Usage: /set <key> <value>")
+        await message.answer("Usage: /set key value", parse_mode=None)
         return
 
     key = parts[1]

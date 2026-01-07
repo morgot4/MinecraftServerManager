@@ -120,7 +120,6 @@ def require_role(min_role: UserRole):
         @wraps(func)
         async def wrapper(*args, **kwargs) -> Any:
             user: User | None = kwargs.get("user")
-
             if not user:
                 return
 
