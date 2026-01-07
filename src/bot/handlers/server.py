@@ -7,7 +7,7 @@ from aiogram.filters import Command
 from aiogram.types import CallbackQuery, Message
 
 from src.bot.keyboards import main_menu_keyboard, server_control_keyboard
-from src.bot.middlewares.auth import require_role
+from src.bot.middlewares.auth import check_role, require_role
 from src.i18n import t
 from src.storage.models import User, UserRole
 from src.utils.network import get_local_ip
@@ -163,7 +163,6 @@ async def cmd_start_server(
 
 
 @router.callback_query(lambda c: c.data == "server:start")
-@require_role(UserRole.OPERATOR)
 async def callback_start_server(
     callback: CallbackQuery,
     user: User,
@@ -171,6 +170,9 @@ async def callback_start_server(
     ctx: "BotContext",  # type: ignore
 ) -> None:
     """Handle start button press (OPERATOR+)."""
+    if not await check_role(user, UserRole.OPERATOR, callback, user_lang):
+        return
+
     server = ctx.server_manager.active_server
     if not server:
         await callback.answer(t("server.no_active", user_lang), show_alert=True)
@@ -236,7 +238,6 @@ async def cmd_stop_server(
 
 
 @router.callback_query(lambda c: c.data == "server:stop")
-@require_role(UserRole.OPERATOR)
 async def callback_stop_server(
     callback: CallbackQuery,
     user: User,
@@ -244,6 +245,9 @@ async def callback_stop_server(
     ctx: "BotContext",  # type: ignore
 ) -> None:
     """Handle stop button press (OPERATOR+)."""
+    if not await check_role(user, UserRole.OPERATOR, callback, user_lang):
+        return
+
     server = ctx.server_manager.active_server
     if not server:
         await callback.answer(t("server.no_active", user_lang), show_alert=True)
@@ -298,7 +302,6 @@ async def cmd_restart_server(
 
 
 @router.callback_query(lambda c: c.data == "server:restart")
-@require_role(UserRole.OPERATOR)
 async def callback_restart_server(
     callback: CallbackQuery,
     user: User,
@@ -306,6 +309,9 @@ async def callback_restart_server(
     ctx: "BotContext",  # type: ignore
 ) -> None:
     """Handle restart button press (OPERATOR+)."""
+    if not await check_role(user, UserRole.OPERATOR, callback, user_lang):
+        return
+
     server = ctx.server_manager.active_server
     if not server:
         await callback.answer(t("server.no_active", user_lang), show_alert=True)

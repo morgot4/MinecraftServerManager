@@ -7,10 +7,10 @@ from aiogram.filters import Command
 from aiogram.types import CallbackQuery, Message
 
 from src.bot.keyboards import back_keyboard, backups_list_keyboard, confirm_keyboard
-from src.bot.middlewares.auth import require_role
+from src.bot.middlewares.auth import check_role, require_role
 from src.core.backup_manager import BackupManager
 from src.i18n import t
-from src.storage.models import BackupType, UserRole
+from src.storage.models import BackupType, User, UserRole
 
 if TYPE_CHECKING:
     from src.bot.bot import BotContext
@@ -48,13 +48,16 @@ async def cmd_backup(
 
 
 @router.callback_query(lambda c: c.data == "backup:create")
-@require_role(UserRole.ADMIN)
 async def callback_backup_create(
     callback: CallbackQuery,
+    user: User,
     user_lang: str,
     ctx: "BotContext",  # type: ignore
 ) -> None:
     """Handle backup create button."""
+    if not await check_role(user, UserRole.ADMIN, callback, user_lang):
+        return
+
     server = ctx.server_manager.active_server
     if not server:
         await callback.answer(t("server.no_active", user_lang), show_alert=True)
@@ -114,13 +117,16 @@ async def cmd_backups(
 
 
 @router.callback_query(lambda c: c.data and c.data.startswith("backup:restore:"))
-@require_role(UserRole.ADMIN)
 async def callback_backup_restore(
     callback: CallbackQuery,
+    user: User,
     user_lang: str,
     ctx: "BotContext",  # type: ignore
 ) -> None:
     """Handle backup restore button - show confirmation."""
+    if not await check_role(user, UserRole.ADMIN, callback, user_lang):
+        return
+
     backup_id = callback.data.split(":")[2]  # type: ignore
 
     # Store backup_id for confirmation
@@ -140,13 +146,16 @@ async def callback_backup_restore(
 
 
 @router.callback_query(lambda c: c.data and c.data.startswith("backup:confirm_restore:"))
-@require_role(UserRole.ADMIN)
 async def callback_backup_confirm_restore(
     callback: CallbackQuery,
+    user: User,
     user_lang: str,
     ctx: "BotContext",  # type: ignore
 ) -> None:
     """Handle backup restore confirmation."""
+    if not await check_role(user, UserRole.ADMIN, callback, user_lang):
+        return
+
     backup_id = callback.data.split(":")[2]  # type: ignore
     server = ctx.server_manager.active_server
 

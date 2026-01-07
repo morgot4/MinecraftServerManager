@@ -97,6 +97,8 @@ class AuthMiddleware(BaseMiddleware):
         data["is_admin"] = user.is_admin()
         data["is_moderator"] = user.is_operator()
 
+        logger.info(f"AuthMiddleware: injected user={user.telegram_id}, passing to handler")
+
         return await handler(event, data)
 
 
@@ -178,3 +180,28 @@ def admin_only(func: Callable) -> Callable:
 def operator_only(func: Callable) -> Callable:
     """Shortcut decorator for operator-only commands."""
     return require_role(UserRole.OPERATOR)(func)
+
+
+async def check_role(
+    user: User | None,
+    min_role: UserRole,
+    callback: "CallbackQuery",
+    lang: str = "ru",
+) -> bool:
+    """
+    Check if user has required role for callback handlers.
+
+    Use this in callback handlers instead of @require_role decorator.
+
+    Returns:
+        True if user has permission, False otherwise (and sends alert)
+    """
+    if not user:
+        await callback.answer(t("roles.no_permission", lang), show_alert=True)
+        return False
+
+    if user.role.level < min_role.level:
+        await callback.answer(t("roles.no_permission", lang), show_alert=True)
+        return False
+
+    return True

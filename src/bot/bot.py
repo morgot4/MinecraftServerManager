@@ -94,20 +94,26 @@ async def create_bot(config: Config) -> tuple[Bot, Dispatcher, BotContext]:
         server_manager=server_manager,
     )
 
-    # Register middleware - use outer_middleware to ensure it runs for all routers
+    # Create auth middleware instance
     auth_middleware = AuthMiddleware(config, database)
-    dp.message.outer_middleware(auth_middleware)
-    dp.callback_query.outer_middleware(auth_middleware)
 
     # Register handlers
-    dp.include_router(start.router)
-    dp.include_router(server.router)
-    dp.include_router(players.router)
-    dp.include_router(config_handlers.router)
-    dp.include_router(backup.router)
-    dp.include_router(mods.router)
-    dp.include_router(roles.router)
-    dp.include_router(admin.router)
+    all_routers = [
+        start.router,
+        server.router,
+        players.router,
+        config_handlers.router,
+        backup.router,
+        mods.router,
+        roles.router,
+        admin.router,
+    ]
+
+    for router in all_routers:
+        # Register middleware on each router
+        router.message.middleware(auth_middleware)
+        router.callback_query.middleware(auth_middleware)
+        dp.include_router(router)
 
     # Store context in dispatcher for handlers
     dp["ctx"] = ctx

@@ -7,10 +7,10 @@ from aiogram.filters import Command
 from aiogram.types import CallbackQuery, Message
 
 from src.bot.keyboards import back_keyboard, whitelist_keyboard
-from src.bot.middlewares.auth import require_role
+from src.bot.middlewares.auth import check_role, require_role
 from src.i18n import t
 from src.minecraft.whitelist import WhitelistManager
-from src.storage.models import UserRole
+from src.storage.models import User, UserRole
 
 if TYPE_CHECKING:
     from src.bot.bot import BotContext
@@ -171,13 +171,16 @@ async def cmd_whitelist(
 
 
 @router.callback_query(lambda c: c.data and c.data.startswith("whitelist:remove:"))
-@require_role(UserRole.ADMIN)
 async def callback_whitelist_remove(
     callback: CallbackQuery,
+    user: User,
     user_lang: str,
     ctx: "BotContext",  # type: ignore
 ) -> None:
     """Handle whitelist remove button."""
+    if not await check_role(user, UserRole.ADMIN, callback, user_lang):
+        return
+
     player = callback.data.split(":")[2]  # type: ignore
     server = ctx.server_manager.active_server
 

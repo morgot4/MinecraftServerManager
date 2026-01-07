@@ -9,10 +9,10 @@ from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import CallbackQuery, Message
 
 from src.bot.keyboards import back_keyboard, mods_list_keyboard
-from src.bot.middlewares.auth import require_role
+from src.bot.middlewares.auth import check_role, require_role
 from src.i18n import t
 from src.mods.mod_manager import ModManager
-from src.storage.models import EngineType, UserRole
+from src.storage.models import EngineType, User, UserRole
 
 if TYPE_CHECKING:
     from src.bot.bot import BotContext
@@ -156,13 +156,16 @@ async def cmd_removemod(
 
 
 @router.callback_query(lambda c: c.data == "mods:search")
-@require_role(UserRole.ADMIN)
 async def callback_mods_search(
     callback: CallbackQuery,
+    user: User,
     state: FSMContext,
     user_lang: str,
 ) -> None:
     """Handle mod search button."""
+    if not await check_role(user, UserRole.ADMIN, callback, user_lang):
+        return
+
     await callback.message.edit_text("🔍 Enter mod name to search:")  # type: ignore
     await state.set_state(ModSearchStates.waiting_for_query)
     await callback.answer()
@@ -212,13 +215,16 @@ async def process_mod_search(
 
 
 @router.callback_query(lambda c: c.data and c.data.startswith("mods:info:"))
-@require_role(UserRole.ADMIN)
 async def callback_mod_info(
     callback: CallbackQuery,
+    user: User,
     user_lang: str,
     ctx: "BotContext",  # type: ignore
 ) -> None:
     """Handle mod info button."""
+    if not await check_role(user, UserRole.ADMIN, callback, user_lang):
+        return
+
     mod_slug = callback.data.split(":")[2]  # type: ignore
     server = ctx.server_manager.active_server
 

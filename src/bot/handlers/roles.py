@@ -7,7 +7,7 @@ from aiogram.filters import Command
 from aiogram.types import CallbackQuery, Message
 
 from src.bot.keyboards import back_keyboard, role_keyboard, users_list_keyboard
-from src.bot.middlewares.auth import require_role
+from src.bot.middlewares.auth import check_role, require_role
 from src.i18n import t
 from src.storage.models import User, UserRole
 
@@ -60,7 +60,6 @@ async def cmd_my_role(
 
 
 @router.callback_query(F.data.startswith("role:user:"))
-@require_role(UserRole.OWNER)
 async def callback_select_user(
     callback: CallbackQuery,
     user: User,
@@ -68,6 +67,9 @@ async def callback_select_user(
     ctx: "BotContext",  # type: ignore
 ) -> None:
     """Handle user selection for role change."""
+    if not await check_role(user, UserRole.OWNER, callback, user_lang):
+        return
+
     target_id = int(callback.data.split(":")[2])  # type: ignore
 
     target_user = await ctx.database.get_user(target_id)
@@ -92,13 +94,14 @@ async def callback_select_user(
 
 
 @router.callback_query(F.data.startswith("role:set:"))
-@require_role(UserRole.OWNER)
 async def callback_set_role(
     callback: CallbackQuery,
     user: User,
     user_lang: str,
     ctx: "BotContext",  # type: ignore
 ) -> None:
+    if not await check_role(user, UserRole.OWNER, callback, user_lang):
+        return
     """Handle role assignment."""
     parts = callback.data.split(":")  # type: ignore
     target_id = int(parts[2])

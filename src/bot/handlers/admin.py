@@ -9,7 +9,7 @@ from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import CallbackQuery, Message
 
 from src.bot.keyboards import back_keyboard, confirm_keyboard, servers_list_keyboard
-from src.bot.middlewares.auth import require_role
+from src.bot.middlewares.auth import check_role, require_role
 from src.core.server_manager import ServerManager
 from src.engines.forge import ForgeEngine
 from src.engines.vanilla import VanillaEngine
@@ -62,7 +62,6 @@ async def cmd_servers(
 
 
 @router.callback_query(lambda c: c.data == "servers:list")
-@require_role(UserRole.OWNER)
 async def callback_servers_list(
     callback: CallbackQuery,
     user: User,
@@ -70,7 +69,8 @@ async def callback_servers_list(
     ctx: "BotContext",  # type: ignore
 ) -> None:
     """Handle servers list button (OWNER only)."""
-    await callback.answer()
+    if not await check_role(user, UserRole.OWNER, callback, user_lang):
+        return
 
     servers = await ctx.database.get_all_servers()
 
@@ -89,13 +89,16 @@ async def callback_servers_list(
 
 
 @router.callback_query(lambda c: c.data and c.data.startswith("servers:select:"))
-@require_role(UserRole.OWNER)
 async def callback_server_select(
     callback: CallbackQuery,
+    user: User,
     user_lang: str,
     ctx: "BotContext",  # type: ignore
 ) -> None:
     """Handle server selection (OWNER only)."""
+    if not await check_role(user, UserRole.OWNER, callback, user_lang):
+        return
+
     server_id = callback.data.split(":")[2]  # type: ignore
 
     # Check if server is running
@@ -312,13 +315,16 @@ async def process_server_version(
 
 
 @router.callback_query(lambda c: c.data == "servers:create")
-@require_role(UserRole.OWNER)
 async def callback_servers_create(
     callback: CallbackQuery,
+    user: User,
     state: FSMContext,
     user_lang: str,
 ) -> None:
     """Handle create server button (OWNER only)."""
+    if not await check_role(user, UserRole.OWNER, callback, user_lang):
+        return
+
     await callback.message.edit_text(  # type: ignore
         "📝 **Create New Server**\n\n" "Enter a name for the server:"
     )
@@ -369,13 +375,16 @@ async def cmd_delete(
 
 
 @router.callback_query(lambda c: c.data and c.data.startswith("server:confirm_delete:"))
-@require_role(UserRole.OWNER)
 async def callback_confirm_delete(
     callback: CallbackQuery,
+    user: User,
     user_lang: str,
     ctx: "BotContext",  # type: ignore
 ) -> None:
     """Handle delete confirmation (OWNER only)."""
+    if not await check_role(user, UserRole.OWNER, callback, user_lang):
+        return
+
     import shutil
 
     server_id = callback.data.split(":")[2]  # type: ignore
@@ -517,9 +526,9 @@ async def cmd_import(
 
 
 @router.callback_query(lambda c: c.data == "servers:scan")
-@require_role(UserRole.OWNER)
 async def callback_scan_servers(
     callback: CallbackQuery,
+    user: User,
     user_lang: str,
     ctx: "BotContext",  # type: ignore
 ) -> None:
@@ -527,13 +536,12 @@ async def callback_scan_servers(
     import asyncio
     import logging
 
-    logger = logging.getLogger(__name__)
-    logger.info("=== callback_scan_servers CALLED ===")
-
     from src.utils.server_scanner import ServerScanner, format_discovered_server
 
-    # Answer callback immediately to prevent timeout
-    await callback.answer()
+    logger = logging.getLogger(__name__)
+
+    if not await check_role(user, UserRole.OWNER, callback, user_lang):
+        return
 
     try:
         await callback.message.edit_text(t("server.import.scanning", user_lang))  # type: ignore
@@ -591,13 +599,16 @@ async def callback_scan_servers(
 
 
 @router.callback_query(lambda c: c.data and c.data.startswith("import:server:"))
-@require_role(UserRole.OWNER)
 async def callback_import_server(
     callback: CallbackQuery,
+    user: User,
     user_lang: str,
     ctx: "BotContext",  # type: ignore
 ) -> None:
     """Handle server import selection (OWNER only)."""
+    if not await check_role(user, UserRole.OWNER, callback, user_lang):
+        return
+
     from src.utils.server_scanner import ServerScanner
 
     server_name = callback.data.split(":")[2]  # type: ignore
@@ -640,13 +651,16 @@ async def callback_import_server(
 
 
 @router.callback_query(lambda c: c.data and c.data.startswith("import:confirm:"))
-@require_role(UserRole.OWNER)
 async def callback_import_confirm(
     callback: CallbackQuery,
+    user: User,
     user_lang: str,
     ctx: "BotContext",  # type: ignore
 ) -> None:
     """Handle server import confirmation (OWNER only)."""
+    if not await check_role(user, UserRole.OWNER, callback, user_lang):
+        return
+
     from src.utils.server_scanner import ServerScanner
 
     server_name = callback.data.split(":")[2]  # type: ignore

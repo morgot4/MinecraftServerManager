@@ -7,10 +7,10 @@ from aiogram.filters import Command
 from aiogram.types import CallbackQuery, Message
 
 from src.bot.keyboards import back_keyboard
-from src.bot.middlewares.auth import require_role
+from src.bot.middlewares.auth import check_role, require_role
 from src.i18n import t
 from src.minecraft.server_properties import ServerProperties
-from src.storage.models import UserRole
+from src.storage.models import User, UserRole
 
 if TYPE_CHECKING:
     from src.bot.bot import BotContext
@@ -64,13 +64,16 @@ Use `/set <key> <value>` to change a setting.
 
 
 @router.callback_query(lambda c: c.data == "config:menu")
-@require_role(UserRole.ADMIN)
 async def callback_settings(
     callback: CallbackQuery,
+    user: User,
     user_lang: str,
     ctx: "BotContext",  # type: ignore
 ) -> None:
     """Handle settings button."""
+    if not await check_role(user, UserRole.ADMIN, callback, user_lang):
+        return
+
     server = ctx.server_manager.active_server
     if not server:
         await callback.answer(t("server.no_active", user_lang), show_alert=True)
